@@ -4,19 +4,28 @@
 
 #include <iostream>
 
+static std::atomic<unsigned int> counter = 0;
+
 static void myPeriodicThread(void)
 {
-    std::cout << "My peeriodic thread" << std::endl;
+    ++counter;
 }
 
+/**
+ * @brief A simple 3 second periodic test
+ * 
+ */
 TEST(Basic, SimpleTest)
 {
-    CPeriodicThread p(myPeriodicThread, 1000);
+    std::cout << "Start test" << std::endl;
+    std::function<void()> f = myPeriodicThread;
+    CPeriodicThread p(f, 1000);
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    std::cout << "Ending test" << std::endl;
 
-    ASSERT_EQ(true, true);
+    // the 1/s periodic thread should be called 3 times during 3 second sleep
+    ASSERT_EQ(counter, 3);
+    std::cout << "End test" << std::endl;
 }
 
 auto main(int argc, char* argv[]) -> int 

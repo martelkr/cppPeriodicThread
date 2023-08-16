@@ -1,17 +1,40 @@
 
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
 
+/**
+ * @brief Create a C++20 periodic jthread
+ * 
+ */
 class CPeriodicThread
 {
 public:
 
-    CPeriodicThread(std::function<void()>& f, const unsigned int periodicityMilliseconds)
-        : m_thread(std::jthread(CPeriodicThread::periodicThread, this))
-        , m_periodicity(periodicity)
-        , m_func(f)
+    /**
+     * @brief Construct a new CPeriodicThread object
+     * 
+     * @param func Function to call periodically
+     * @param periodicityMilliseconds The millisecond period at which to call the provided function
+     */
+    CPeriodicThread(std::function<void()>& func, const unsigned int periodicityMilliseconds)
+        : m_thread([periodicityMilliseconds, func](std::stop_token stopToken)
+        {
+            const std::chrono::milliseconds period(periodicityMilliseconds);
+            while(!stopToken.stop_requested())
+            {
+                func();
+                std::this_thread::sleep_for(period);
+            }
+        })
     {
     }
 
+    /**
+     * @brief Destroy the CPeriodicThread object
+     * 
+     */
     ~CPeriodicThread(void)
     {
         m_thread.request_stop();
@@ -19,15 +42,6 @@ public:
 
 private:
 
-    void periodicThread(void)
-    {
-        while(!m_thread.request_stop())
-        {
-
-        }
-    }
-
+    /// @brief The jthread to contain the periodic function call
     std::jthread m_thread;
-    const unsigned int m_periodicity;
-    std::function<void()> m_func;
 };
