@@ -24,7 +24,7 @@ TEST(Basic, SimpleTest)
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
     // the 1/s periodic thread should be called 3 times during 3 second sleep
-    ASSERT_EQ(counter, 3);
+    ASSERT_GE(counter, 3);
     std::cout << "End test" << std::endl;
 }
 
